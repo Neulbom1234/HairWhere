@@ -33,12 +33,22 @@ export default async (prevState: any, formData: FormData) => {
     return { message: 'Only letters, numbers, and @ . allowed' };
   }
 
-  // secondPw 필드를 제거
-  formData.delete('secondPw');
+  const jsonData = JSON.stringify({
+    loginId: formData.get('loginId'),
+    pw: formData.get('pw'),
+    email: formData.get('email'),
+    name: formData.get('name')
+  });
+
+  const jsonBlob = new Blob([jsonData], { type: 'application/json' });
+
+  const newFormData = new FormData();
+  newFormData.append('json', jsonBlob);
+  newFormData.append('profile', formData.get('profile') as File);
 
   // 전송할 데이터 확인
   console.log('Sending FormData contents (after removing secondPw):');
-  formData.forEach((value, key) => {
+  newFormData.forEach((value, key) => {
     console.log(`${key}:`, value);
   });
 
@@ -46,7 +56,7 @@ export default async (prevState: any, formData: FormData) => {
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_SERVER}/register`, {
       method: 'POST',
-      body: formData,
+      body: newFormData,
       credentials: 'include',
     });
 
